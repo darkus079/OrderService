@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-// Order represents the main order structure
 type Order struct {
 	OrderUID          string    `json:"order_uid" db:"order_uid"`
 	TrackNumber       string    `json:"track_number" db:"track_number"`
@@ -22,7 +21,6 @@ type Order struct {
 	OOFShard          string    `json:"oof_shard" db:"oof_shard"`
 }
 
-// Delivery represents delivery information
 type Delivery struct {
 	Name    string `json:"name" db:"name"`
 	Phone   string `json:"phone" db:"phone"`
@@ -33,7 +31,6 @@ type Delivery struct {
 	Email   string `json:"email" db:"email"`
 }
 
-// Payment represents payment information
 type Payment struct {
 	Transaction  string `json:"transaction" db:"transaction"`
 	RequestID    string `json:"request_id" db:"request_id"`
@@ -47,7 +44,6 @@ type Payment struct {
 	CustomFee    int    `json:"custom_fee" db:"custom_fee"`
 }
 
-// Item represents an item in the order
 type Item struct {
 	ChrtID      int    `json:"chrt_id" db:"chrt_id"`
 	TrackNumber string `json:"track_number" db:"track_number"`
