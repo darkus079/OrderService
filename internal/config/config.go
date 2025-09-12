@@ -52,7 +52,7 @@ func Load() *Config {
 			SSLMode:  getEnv("DB_SSLMODE", "disable"),
 		},
 		Kafka: KafkaConfig{
-			Brokers: []string{getEnv("KAFKA_BROKERS", "localhost:9092")},
+			Brokers: []string{getEnv("KAFKA_BROKERS", "127.0.0.1:9092")},
 			Topic:   getEnv("KAFKA_TOPIC", "orders"),
 			GroupID: getEnv("KAFKA_GROUP_ID", "order-service"),
 		},
