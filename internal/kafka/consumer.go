@@ -50,8 +50,6 @@ func (c *Consumer) Start() {
 
 func (c *Consumer) Stop() {
 	c.cancel()
-	close(c.orderCh)
-	close(c.errorCh)
 	c.reader.Close()
 }
 
@@ -74,14 +72,22 @@ func (c *Consumer) consume() {
 				if err == context.Canceled {
 					return
 				}
-				c.errorCh <- fmt.Errorf("failed to read message: %w", err)
+				select {
+				case c.errorCh <- fmt.Errorf("failed to read message: %w", err):
+				case <-c.ctx.Done():
+					return
+				}
 				continue
 			}
 
 			order, err := c.parseMessage(msg.Value)
 			if err != nil {
 				log.Printf("Failed to parse message: %v", err)
-				c.errorCh <- err
+				select {
+				case c.errorCh <- err:
+				case <-c.ctx.Done():
+					return
+				}
 				continue
 			}
 
