@@ -6,7 +6,6 @@ import (
 	"testing"
 )
 
-// mockRepository is a mock implementation of Repository for testing
 type mockRepository struct {
 	orders map[string]*models.Order
 }
@@ -46,7 +45,6 @@ func TestCache_SetAndGet(t *testing.T) {
 		CustomerID:  "customer1",
 	}
 
-	// Test setting and getting from cache
 	cache.Set(order.OrderUID, order)
 
 	retrieved, err := cache.Get(context.Background(), order.OrderUID)
@@ -73,10 +71,8 @@ func TestCache_GetFromDatabase(t *testing.T) {
 		CustomerID:  "customer1",
 	}
 
-	// Add order to mock repository
 	repo.addOrder(order)
 
-	// Get order (should fetch from database and cache it)
 	retrieved, err := cache.Get(context.Background(), order.OrderUID)
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
@@ -90,7 +86,6 @@ func TestCache_GetFromDatabase(t *testing.T) {
 		t.Errorf("Expected OrderUID %s, got %s", order.OrderUID, retrieved.OrderUID)
 	}
 
-	// Verify it's now in cache
 	if cache.Size() != 1 {
 		t.Errorf("Expected cache size 1, got %d", cache.Size())
 	}
@@ -137,7 +132,6 @@ func TestCache_LoadFromDB(t *testing.T) {
 	repo := newMockRepository()
 	cache := NewCache(100, repo)
 
-	// Add multiple orders to mock repository
 	orders := []*models.Order{
 		{OrderUID: "order-1", TrackNumber: "TRACK1", CustomerID: "customer1"},
 		{OrderUID: "order-2", TrackNumber: "TRACK2", CustomerID: "customer2"},
@@ -148,7 +142,6 @@ func TestCache_LoadFromDB(t *testing.T) {
 		repo.addOrder(order)
 	}
 
-	// Load from database
 	err := cache.LoadFromDB(context.Background())
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
@@ -158,7 +151,6 @@ func TestCache_LoadFromDB(t *testing.T) {
 		t.Errorf("Expected cache size 3, got %d", cache.Size())
 	}
 
-	// Verify all orders are accessible
 	for _, expectedOrder := range orders {
 		retrieved, err := cache.Get(context.Background(), expectedOrder.OrderUID)
 		if err != nil {
@@ -172,9 +164,8 @@ func TestCache_LoadFromDB(t *testing.T) {
 
 func TestCache_Eviction(t *testing.T) {
 	repo := newMockRepository()
-	cache := NewCache(2, repo) // Small cache size
+	cache := NewCache(2, repo)
 
-	// Add more orders than cache can hold
 	orders := []*models.Order{
 		{OrderUID: "order-1", TrackNumber: "TRACK1", CustomerID: "customer1"},
 		{OrderUID: "order-2", TrackNumber: "TRACK2", CustomerID: "customer2"},
@@ -185,12 +176,10 @@ func TestCache_Eviction(t *testing.T) {
 		cache.Set(order.OrderUID, order)
 	}
 
-	// Cache should not exceed max size
 	if cache.Size() > 2 {
 		t.Errorf("Cache size %d exceeds max size 2", cache.Size())
 	}
 
-	// At least one order should be accessible (the most recently used)
 	accessible := 0
 	for _, order := range orders {
 		if retrieved, _ := cache.Get(context.Background(), order.OrderUID); retrieved != nil {

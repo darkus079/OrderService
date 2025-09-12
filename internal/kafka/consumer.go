@@ -12,7 +12,6 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-// Consumer handles Kafka message consumption
 type Consumer struct {
 	reader  *kafka.Reader
 	orderCh chan *models.Order
@@ -22,7 +21,6 @@ type Consumer struct {
 	cancel  context.CancelFunc
 }
 
-// NewConsumer creates a new Kafka consumer
 func NewConsumer(cfg *config.KafkaConfig) *Consumer {
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -46,12 +44,10 @@ func NewConsumer(cfg *config.KafkaConfig) *Consumer {
 	}
 }
 
-// Start begins consuming messages from Kafka
 func (c *Consumer) Start() {
 	go c.consume()
 }
 
-// Stop stops the consumer
 func (c *Consumer) Stop() {
 	c.cancel()
 	close(c.orderCh)
@@ -59,17 +55,14 @@ func (c *Consumer) Stop() {
 	c.reader.Close()
 }
 
-// OrderChannel returns the channel for receiving orders
 func (c *Consumer) OrderChannel() <-chan *models.Order {
 	return c.orderCh
 }
 
-// ErrorChannel returns the channel for receiving errors
 func (c *Consumer) ErrorChannel() <-chan error {
 	return c.errorCh
 }
 
-// consume reads messages from Kafka and processes them
 func (c *Consumer) consume() {
 	for {
 		select {
@@ -85,7 +78,6 @@ func (c *Consumer) consume() {
 				continue
 			}
 
-			// Parse the message
 			order, err := c.parseMessage(msg.Value)
 			if err != nil {
 				log.Printf("Failed to parse message: %v", err)
@@ -93,7 +85,6 @@ func (c *Consumer) consume() {
 				continue
 			}
 
-			// Send order to channel
 			select {
 			case c.orderCh <- order:
 			case <-c.ctx.Done():
@@ -105,14 +96,12 @@ func (c *Consumer) consume() {
 	}
 }
 
-// parseMessage parses a Kafka message into an Order
 func (c *Consumer) parseMessage(data []byte) (*models.Order, error) {
 	var order models.Order
 	if err := json.Unmarshal(data, &order); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal order: %w", err)
 	}
 
-	// Validate required fields
 	if order.OrderUID == "" {
 		return nil, fmt.Errorf("order_uid is required")
 	}
@@ -121,7 +110,6 @@ func (c *Consumer) parseMessage(data []byte) (*models.Order, error) {
 		return nil, fmt.Errorf("track_number is required")
 	}
 
-	// Set default values if not provided
 	if order.DateCreated.IsZero() {
 		order.DateCreated = time.Now()
 	}
@@ -129,9 +117,6 @@ func (c *Consumer) parseMessage(data []byte) (*models.Order, error) {
 	return &order, nil
 }
 
-// Commit commits the current offset
 func (c *Consumer) Commit() error {
-	// In newer versions of kafka-go, commits are handled automatically
-	// when using ReaderConfig.CommitInterval
 	return nil
 }

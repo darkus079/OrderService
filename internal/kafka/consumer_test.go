@@ -122,7 +122,6 @@ func TestConsumer_parseMessage(t *testing.T) {
 				t.Errorf("Expected OrderUID %s, got %s", tt.expectedUID, order.OrderUID)
 			}
 
-			// Verify that date_created is set if not provided
 			if order.DateCreated.IsZero() {
 				t.Error("Expected DateCreated to be set")
 			}
@@ -137,7 +136,6 @@ func TestConsumer_parseMessageWithDateCreated(t *testing.T) {
 		GroupID: "test-group",
 	})
 
-	// Test with provided date_created
 	messageData := []byte(`{
 		"order_uid": "test-order-1",
 		"track_number": "TRACK123",
@@ -162,7 +160,6 @@ func TestConsumer_parseMessageWithoutDateCreated(t *testing.T) {
 		GroupID: "test-group",
 	})
 
-	// Test without date_created (should be set to current time)
 	messageData := []byte(`{
 		"order_uid": "test-order-1",
 		"track_number": "TRACK123"
@@ -188,7 +185,6 @@ func TestConsumer_parseMessageComplexOrder(t *testing.T) {
 		GroupID: "test-group",
 	})
 
-	// Create a complex order similar to the model.json
 	complexOrder := models.Order{
 		OrderUID:    "b563feb7b2b84b6test",
 		TrackNumber: "WBILMTESTTRACK",
@@ -239,19 +235,16 @@ func TestConsumer_parseMessageComplexOrder(t *testing.T) {
 		OOFShard:          "1",
 	}
 
-	// Marshal to JSON
 	messageData, err := json.Marshal(complexOrder)
 	if err != nil {
 		t.Fatalf("Failed to marshal order: %v", err)
 	}
 
-	// Parse back
 	parsedOrder, err := consumer.parseMessage(messageData)
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
-	// Verify all fields are correctly parsed
 	if parsedOrder.OrderUID != complexOrder.OrderUID {
 		t.Errorf("Expected OrderUID %s, got %s", complexOrder.OrderUID, parsedOrder.OrderUID)
 	}

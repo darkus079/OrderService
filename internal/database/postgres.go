@@ -11,12 +11,10 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// PostgresRepository implements Repository interface for PostgreSQL
 type PostgresRepository struct {
 	db *sql.DB
 }
 
-// NewPostgresRepository creates a new PostgreSQL repository
 func NewPostgresRepository(cfg *config.DatabaseConfig) (*PostgresRepository, error) {
 	db, err := sql.Open("postgres", cfg.DSN())
 	if err != nil {
@@ -29,7 +27,6 @@ func NewPostgresRepository(cfg *config.DatabaseConfig) (*PostgresRepository, err
 
 	repo := &PostgresRepository{db: db}
 
-	// Create tables if they don't exist
 	if err := repo.createTables(); err != nil {
 		return nil, fmt.Errorf("failed to create tables: %w", err)
 	}
@@ -37,7 +34,6 @@ func NewPostgresRepository(cfg *config.DatabaseConfig) (*PostgresRepository, err
 	return repo, nil
 }
 
-// createTables creates the necessary tables for the application
 func (r *PostgresRepository) createTables() error {
 	query := `
 	CREATE TABLE IF NOT EXISTS orders (
@@ -67,7 +63,6 @@ func (r *PostgresRepository) createTables() error {
 	return err
 }
 
-// CreateOrder creates a new order in the database
 func (r *PostgresRepository) CreateOrder(ctx context.Context, order *models.Order) error {
 	deliveryJSON, err := json.Marshal(order.Delivery)
 	if err != nil {
@@ -116,7 +111,6 @@ func (r *PostgresRepository) CreateOrder(ctx context.Context, order *models.Orde
 	return err
 }
 
-// GetOrderByID retrieves an order by its ID
 func (r *PostgresRepository) GetOrderByID(ctx context.Context, orderUID string) (*models.Order, error) {
 	query := `
 		SELECT order_uid, track_number, entry, delivery, payment, items,
@@ -141,7 +135,6 @@ func (r *PostgresRepository) GetOrderByID(ctx context.Context, orderUID string) 
 		return nil, err
 	}
 
-	// Unmarshal JSON fields
 	if err := json.Unmarshal(deliveryJSON, &order.Delivery); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal delivery: %w", err)
 	}
@@ -157,7 +150,6 @@ func (r *PostgresRepository) GetOrderByID(ctx context.Context, orderUID string) 
 	return &order, nil
 }
 
-// GetAllOrders retrieves all orders (for cache initialization)
 func (r *PostgresRepository) GetAllOrders(ctx context.Context) ([]*models.Order, error) {
 	query := `
 		SELECT order_uid, track_number, entry, delivery, payment, items,
@@ -186,7 +178,6 @@ func (r *PostgresRepository) GetAllOrders(ctx context.Context) ([]*models.Order,
 			return nil, err
 		}
 
-		// Unmarshal JSON fields
 		if err := json.Unmarshal(deliveryJSON, &order.Delivery); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal delivery: %w", err)
 		}
@@ -205,19 +196,16 @@ func (r *PostgresRepository) GetAllOrders(ctx context.Context) ([]*models.Order,
 	return orders, rows.Err()
 }
 
-// UpdateOrder updates an existing order
 func (r *PostgresRepository) UpdateOrder(ctx context.Context, order *models.Order) error {
 	return r.CreateOrder(ctx, order) // Using upsert logic
 }
 
-// DeleteOrder deletes an order by ID
 func (r *PostgresRepository) DeleteOrder(ctx context.Context, orderUID string) error {
 	query := `DELETE FROM orders WHERE order_uid = $1`
 	_, err := r.db.ExecContext(ctx, query, orderUID)
 	return err
 }
 
-// Close closes the database connection
 func (r *PostgresRepository) Close() error {
 	return r.db.Close()
 }

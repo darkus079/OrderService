@@ -10,7 +10,6 @@ import (
 	"time"
 )
 
-// mockCache is a mock implementation of cache for testing
 type mockCache struct {
 	orders map[string]*models.Order
 }
@@ -52,7 +51,6 @@ func TestOrderHandler_GetOrder(t *testing.T) {
 	mockCache := newMockCache()
 	handler := NewOrderHandler(mockCache)
 
-	// Create a test order
 	testOrder := &models.Order{
 		OrderUID:    "test-order-1",
 		TrackNumber: "TRACK123",
@@ -117,7 +115,6 @@ func TestOrderHandler_GetOrder(t *testing.T) {
 			}
 
 			if !tt.expectError {
-				// Verify response body for successful requests
 				var response models.Order
 				if err := json.NewDecoder(rr.Body).Decode(&response); err != nil {
 					t.Errorf("Failed to decode response: %v", err)
@@ -127,7 +124,6 @@ func TestOrderHandler_GetOrder(t *testing.T) {
 					t.Errorf("Expected OrderUID %s, got %s", tt.orderUID, response.OrderUID)
 				}
 			} else {
-				// Verify error response
 				if rr.Body.String() == "" {
 					t.Error("Expected error message in response body")
 				}
@@ -152,13 +148,11 @@ func TestOrderHandler_HealthCheck(t *testing.T) {
 		t.Errorf("Expected status %d, got %d", http.StatusOK, rr.Code)
 	}
 
-	// Verify response content type
 	contentType := rr.Header().Get("Content-Type")
 	if contentType != "application/json" {
 		t.Errorf("Expected Content-Type application/json, got %s", contentType)
 	}
 
-	// Verify response body
 	var response map[string]interface{}
 	if err := json.NewDecoder(rr.Body).Decode(&response); err != nil {
 		t.Errorf("Failed to decode response: %v", err)
@@ -177,7 +171,6 @@ func TestOrderHandler_GetOrderStats(t *testing.T) {
 	mockCache := newMockCache()
 	handler := NewOrderHandler(mockCache)
 
-	// Add some test orders to cache
 	testOrder := &models.Order{
 		OrderUID:    "test-order-1",
 		TrackNumber: "TRACK123",
@@ -197,13 +190,11 @@ func TestOrderHandler_GetOrderStats(t *testing.T) {
 		t.Errorf("Expected status %d, got %d", http.StatusOK, rr.Code)
 	}
 
-	// Verify response content type
 	contentType := rr.Header().Get("Content-Type")
 	if contentType != "application/json" {
 		t.Errorf("Expected Content-Type application/json, got %s", contentType)
 	}
 
-	// Verify response body
 	var response map[string]interface{}
 	if err := json.NewDecoder(rr.Body).Decode(&response); err != nil {
 		t.Errorf("Failed to decode response: %v", err)
@@ -222,7 +213,6 @@ func TestOrderHandler_GetOrderWithComplexData(t *testing.T) {
 	mockCache := newMockCache()
 	handler := NewOrderHandler(mockCache)
 
-	// Create a complex order similar to model.json
 	complexOrder := &models.Order{
 		OrderUID:    "b563feb7b2b84b6test",
 		TrackNumber: "WBILMTESTTRACK",
@@ -287,13 +277,11 @@ func TestOrderHandler_GetOrderWithComplexData(t *testing.T) {
 		t.Errorf("Expected status %d, got %d", http.StatusOK, rr.Code)
 	}
 
-	// Verify response body
 	var response models.Order
 	if err := json.NewDecoder(rr.Body).Decode(&response); err != nil {
 		t.Errorf("Failed to decode response: %v", err)
 	}
 
-	// Verify all fields are correctly returned
 	if response.OrderUID != complexOrder.OrderUID {
 		t.Errorf("Expected OrderUID %s, got %s", complexOrder.OrderUID, response.OrderUID)
 	}

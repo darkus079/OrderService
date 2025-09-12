@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Service</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .search-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            align-items: center;
+        }
+        
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        
+        button {
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .order-details {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .order-section {
+            margin-bottom: 25px;
+        }
+        
+        .order-section h3 {
+            color: #495057;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .field {
+            display: flex;
+            margin-bottom: 8px;
+        }
+        
+        .field-label {
+            font-weight: bold;
+            min-width: 150px;
+            color: #495057;
+        }
+        
+        .field-value {
+            color: #212529;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .items-table th,
+        .items-table td {
+            border: 1px solid #dee2e6;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .items-table th {
+            background-color: #e9ecef;
+            font-weight: bold;
+        }
+        
+        .items-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .stats {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stats h4 {
+            margin: 0 0 10px 0;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Order Service</h1>
+        
+        <div class="stats">
+            <h4>Service Status</h4>
+            <div id="stats">Loading...</div>
+        </div>
+        
+        <div class="search-form">
+            <input type="text" id="orderId" placeholder="Enter Order ID (e.g., b563feb7b2b84b6test)" />
+            <button onclick="searchOrder()" id="searchBtn">Search Order</button>
+        </div>
+        
+        <div id="loading" class="loading" style="display: none;">
+            Searching for order...
+        </div>
+        
+        <div id="error" class="error" style="display: none;"></div>
+        
+        <div id="orderDetails" class="order-details" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Load stats on page load
+        window.onload = function() {
+            loadStats();
+        };
+        
+        function loadStats() {
+            fetch('/health')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('stats').innerHTML = 
+                        `Status: ${data.status} | Cache Size: ${data.cache_size} | Last Updated: ${new Date(data.timestamp).toLocaleString()}`;
+                })
+                .catch(error => {
+                    document.getElementById('stats').innerHTML = 'Error loading stats';
+                });
+        }
+        
+        function searchOrder() {
+            const orderId = document.getElementById('orderId').value.trim();
+            if (!orderId) {
+                showError('Please enter an Order ID');
+                return;
+            }
+            
+            // Show loading state
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('orderDetails').style.display = 'none';
+            document.getElementById('searchBtn').disabled = true;
+            
+            // Make API request
+            fetch(`/order/${orderId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            throw new Error('Order not found');
+                        } else {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+                    }
+                    return response.json();
+                })
+                .then(order => {
+                    displayOrder(order);
+                    loadStats(); // Refresh stats
+                })
+                .catch(error => {
+                    showError(error.message);
+                })
+                .finally(() => {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('searchBtn').disabled = false;
+                });
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+        
+        function displayOrder(order) {
+            const detailsDiv = document.getElementById('orderDetails');
+            
+            let html = `
+                <div class="order-section">
+                    <h3>Order Information</h3>
+                    <div class="field"><span class="field-label">Order UID:</span><span class="field-value">${order.order_uid}</span></div>
+                    <div class="field"><span class="field-label">Track Number:</span><span class="field-value">${order.track_number}</span></div>
+                    <div class="field"><span class="field-label">Entry:</span><span class="field-value">${order.entry}</span></div>
+                    <div class="field"><span class="field-label">Customer ID:</span><span class="field-value">${order.customer_id}</span></div>
+                    <div class="field"><span class="field-label">Delivery Service:</span><span class="field-value">${order.delivery_service}</span></div>
+                    <div class="field"><span class="field-label">Date Created:</span><span class="field-value">${new Date(order.date_created).toLocaleString()}</span></div>
+                    <div class="field"><span class="field-label">Locale:</span><span class="field-value">${order.locale}</span></div>
+                </div>
+                
+                <div class="order-section">
+                    <h3>Delivery Information</h3>
+                    <div class="field"><span class="field-label">Name:</span><span class="field-value">${order.delivery.name}</span></div>
+                    <div class="field"><span class="field-label">Phone:</span><span class="field-value">${order.delivery.phone}</span></div>
+                    <div class="field"><span class="field-label">Email:</span><span class="field-value">${order.delivery.email}</span></div>
+                    <div class="field"><span class="field-label">Address:</span><span class="field-value">${order.delivery.address}</span></div>
+                    <div class="field"><span class="field-label">City:</span><span class="field-value">${order.delivery.city}</span></div>
+                    <div class="field"><span class="field-label">Region:</span><span class="field-value">${order.delivery.region}</span></div>
+                    <div class="field"><span class="field-label">ZIP:</span><span class="field-value">${order.delivery.zip}</span></div>
+                </div>
+                
+                <div class="order-section">
+                    <h3>Payment Information</h3>
+                    <div class="field"><span class="field-label">Transaction:</span><span class="field-value">${order.payment.transaction}</span></div>
+                    <div class="field"><span class="field-label">Currency:</span><span class="field-value">${order.payment.currency}</span></div>
+                    <div class="field"><span class="field-label">Provider:</span><span class="field-value">${order.payment.provider}</span></div>
+                    <div class="field"><span class="field-label">Amount:</span><span class="field-value">$${(order.payment.amount / 100).toFixed(2)}</span></div>
+                    <div class="field"><span class="field-label">Delivery Cost:</span><span class="field-value">$${(order.payment.delivery_cost / 100).toFixed(2)}</span></div>
+                    <div class="field"><span class="field-label">Goods Total:</span><span class="field-value">$${(order.payment.goods_total / 100).toFixed(2)}</span></div>
+                    <div class="field"><span class="field-label">Bank:</span><span class="field-value">${order.payment.bank}</span></div>
+                    <div class="field"><span class="field-label">Payment Date:</span><span class="field-value">${new Date(order.payment.payment_dt * 1000).toLocaleString()}</span></div>
+                </div>
+            `;
+            
+            if (order.items && order.items.length > 0) {
+                html += `
+                    <div class="order-section">
+                        <h3>Items (${order.items.length})</h3>
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Brand</th>
+                                    <th>Price</th>
+                                    <th>Sale %</th>
+                                    <th>Total Price</th>
+                                    <th>Size</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                order.items.forEach(item => {
+                    html += `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td>${item.brand}</td>
+                            <td>$${(item.price / 100).toFixed(2)}</td>
+                            <td>${item.sale}%</td>
+                            <td>$${(item.total_price / 100).toFixed(2)}</td>
+                            <td>${item.size}</td>
+                            <td>${item.status}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+            
+            detailsDiv.innerHTML = html;
+            detailsDiv.style.display = 'block';
+        }
+        
+        // Allow Enter key to trigger search
+        document.getElementById('orderId').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchOrder();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -8,19 +8,16 @@ import (
 	"time"
 )
 
-// MockRepository implements Repository interface for testing without PostgreSQL
 type MockRepository struct {
 	orders map[string]*models.Order
 	mutex  sync.RWMutex
 }
 
-// NewMockRepository creates a new mock repository with sample data
 func NewMockRepository() *MockRepository {
 	repo := &MockRepository{
 		orders: make(map[string]*models.Order),
 	}
 
-	// Add sample order from model.json
 	sampleOrder := &models.Order{
 		OrderUID:    "b563feb7b2b84b6test",
 		TrackNumber: "WBILMTESTTRACK",
@@ -75,12 +72,10 @@ func NewMockRepository() *MockRepository {
 	return repo
 }
 
-// CreateOrder creates a new order in memory
 func (r *MockRepository) CreateOrder(ctx context.Context, order *models.Order) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	// Simulate database constraint validation
 	if order.OrderUID == "" {
 		return fmt.Errorf("order_uid cannot be empty")
 	}
@@ -89,28 +84,25 @@ func (r *MockRepository) CreateOrder(ctx context.Context, order *models.Order) e
 		return fmt.Errorf("track_number cannot be empty")
 	}
 
-	// Store order
 	r.orders[order.OrderUID] = order
 	fmt.Printf("📦 Mock DB: Saved order %s\n", order.OrderUID)
 
 	return nil
 }
 
-// GetOrderByID retrieves an order by its ID
 func (r *MockRepository) GetOrderByID(ctx context.Context, orderUID string) (*models.Order, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
 	order, exists := r.orders[orderUID]
 	if !exists {
-		return nil, nil // Not found
+		return nil, nil
 	}
 
 	fmt.Printf("🔍 Mock DB: Retrieved order %s\n", orderUID)
 	return order, nil
 }
 
-// GetAllOrders retrieves all orders
 func (r *MockRepository) GetAllOrders(ctx context.Context) ([]*models.Order, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
@@ -124,12 +116,10 @@ func (r *MockRepository) GetAllOrders(ctx context.Context) ([]*models.Order, err
 	return orders, nil
 }
 
-// UpdateOrder updates an existing order
 func (r *MockRepository) UpdateOrder(ctx context.Context, order *models.Order) error {
 	return r.CreateOrder(ctx, order) // Reuse create logic
 }
 
-// DeleteOrder deletes an order by ID
 func (r *MockRepository) DeleteOrder(ctx context.Context, orderUID string) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
@@ -139,13 +129,11 @@ func (r *MockRepository) DeleteOrder(ctx context.Context, orderUID string) error
 	return nil
 }
 
-// Close closes the repository (no-op for mock)
 func (r *MockRepository) Close() error {
 	fmt.Println("🔌 Mock DB: Connection closed")
 	return nil
 }
 
-// AddSampleOrders adds more sample orders for testing
 func (r *MockRepository) AddSampleOrders() {
 	sampleOrders := []*models.Order{
 		{
@@ -211,7 +199,6 @@ func (r *MockRepository) AddSampleOrders() {
 	}
 }
 
-// GetStats returns repository statistics
 func (r *MockRepository) GetStats() map[string]interface{} {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()

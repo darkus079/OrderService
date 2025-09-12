@@ -6,7 +6,6 @@ import (
 	"strconv"
 )
 
-// Config holds all configuration for our application
 type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
@@ -14,13 +13,11 @@ type Config struct {
 	Cache    CacheConfig
 }
 
-// ServerConfig holds HTTP server configuration
 type ServerConfig struct {
 	Port string
 	Host string
 }
 
-// DatabaseConfig holds PostgreSQL database configuration
 type DatabaseConfig struct {
 	Host     string
 	Port     string
@@ -30,19 +27,16 @@ type DatabaseConfig struct {
 	SSLMode  string
 }
 
-// KafkaConfig holds Kafka configuration
 type KafkaConfig struct {
 	Brokers []string
 	Topic   string
 	GroupID string
 }
 
-// CacheConfig holds cache configuration
 type CacheConfig struct {
 	MaxSize int
 }
 
-// Load loads configuration from environment variables with defaults
 func Load() *Config {
 	return &Config{
 		Server: ServerConfig{
@@ -68,13 +62,11 @@ func Load() *Config {
 	}
 }
 
-// DSN returns the database connection string
 func (c *DatabaseConfig) DSN() string {
 	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		c.Host, c.Port, c.User, c.Password, c.DBName, c.SSLMode)
 }
 
-// getEnv gets an environment variable or returns a default value
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
@@ -82,7 +74,6 @@ func getEnv(key, defaultValue string) string {
 	return defaultValue
 }
 
-// getEnvAsInt gets an environment variable as integer or returns a default value
 func getEnvAsInt(key string, defaultValue int) int {
 	if value := os.Getenv(key); value != "" {
 		if intValue, err := strconv.Atoi(value); err == nil {
