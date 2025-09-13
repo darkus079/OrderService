@@ -38,14 +38,14 @@ func (r *PostgresRepository) createTables() error {
 	query := `
 	CREATE TABLE IF NOT EXISTS orders (
 		order_uid VARCHAR(255) PRIMARY KEY,
-		track_number VARCHAR(255),
+		track_number VARCHAR(500),
 		entry VARCHAR(255),
 		delivery JSONB,
 		payment JSONB,
 		items JSONB,
 		locale VARCHAR(10),
-		internal_signature VARCHAR(255),
-		customer_id VARCHAR(255),
+		internal_signature TEXT,
+		customer_id VARCHAR(500),
 		delivery_service VARCHAR(255),
 		shard_key VARCHAR(255),
 		sm_id INTEGER,
@@ -60,7 +60,26 @@ func (r *PostgresRepository) createTables() error {
 	`
 
 	_, err := r.db.Exec(query)
-	return err
+	if err != nil {
+		return err
+	}
+
+	// Migrate existing table if needed
+	migrationQueries := []string{
+		`ALTER TABLE orders ALTER COLUMN track_number TYPE VARCHAR(500)`,
+		`ALTER TABLE orders ALTER COLUMN internal_signature TYPE TEXT`,
+		`ALTER TABLE orders ALTER COLUMN customer_id TYPE VARCHAR(500)`,
+	}
+
+	for _, migrationQuery := range migrationQueries {
+		_, err := r.db.Exec(migrationQuery)
+		if err != nil {
+			// Log migration errors but don't fail - the table might already have correct schema
+			fmt.Printf("Migration warning: %v\n", err)
+		}
+	}
+
+	return nil
 }
 
 func (r *PostgresRepository) CreateOrder(ctx context.Context, order *models.Order) error {
