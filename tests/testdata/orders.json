@@ -1,0 +1,126 @@
+[
+  {
+    "order_uid": "test_order_001",
+    "track_number": "TRACK_001",
+    "entry": "WBIL",
+    "delivery": {
+      "name": "John Doe",
+      "phone": "+380501234567",
+      "zip": "01001",
+      "city": "Kyiv",
+      "address": "Independence Square 1",
+      "region": "Kyivska",
+      "email": "john.doe@test.com"
+    },
+    "payment": {
+      "transaction": "txn_test_order_001",
+      "request_id": "",
+      "currency": "USD",
+      "provider": "wbpay",
+      "amount": 1500,
+      "payment_dt": 1640995200,
+      "bank": "alpha",
+      "delivery_cost": 300,
+      "goods_total": 1200,
+      "custom_fee": 0
+    },
+    "items": [
+      {
+        "chrt_id": 1001,
+        "track_number": "TRACK_001",
+        "price": 600,
+        "rid": "rid_test_order_001_1",
+        "name": "Test Product 1",
+        "sale": 10,
+        "size": "M",
+        "total_price": 540,
+        "nm_id": 10001,
+        "brand": "Test Brand",
+        "status": 202
+      },
+      {
+        "chrt_id": 1002,
+        "track_number": "TRACK_001",
+        "price": 800,
+        "rid": "rid_test_order_001_2",
+        "name": "Test Product 2",
+        "sale": 15,
+        "size": "L",
+        "total_price": 680,
+        "nm_id": 10002,
+        "brand": "Test Brand",
+        "status": 202
+      }
+    ],
+    "locale": "en",
+    "internal_signature": "",
+    "customer_id": "customer_1",
+    "delivery_service": "meest",
+    "shardkey": "1",
+    "sm_id": 1,
+    "date_created": "2024-01-01T10:00:00Z",
+    "oof_shard": "1"
+  },
+  {
+    "order_uid": "test_order_002",
+    "track_number": "TRACK_002",
+    "entry": "WBIL",
+    "delivery": {
+      "name": "Jane Smith",
+      "phone": "+380502345678",
+      "zip": "61000",
+      "city": "Kharkiv",
+      "address": "Freedom Square 2",
+      "region": "Kharkivska",
+      "email": "jane.smith@test.com"
+    },
+    "payment": {
+      "transaction": "txn_test_order_002",
+      "request_id": "",
+      "currency": "EUR",
+      "provider": "stripe",
+      "amount": 2500,
+      "payment_dt": 1641081600,
+      "bank": "privat",
+      "delivery_cost": 500,
+      "goods_total": 2000,
+      "custom_fee": 50
+    },
+    "items": [
+      {
+        "chrt_id": 2001,
+        "track_number": "TRACK_002",
+        "price": 1000,
+        "rid": "rid_test_order_002_1",
+        "name": "Premium Product 1",
+        "sale": 5,
+        "size": "XL",
+        "total_price": 950,
+        "nm_id": 20001,
+        "brand": "Premium Brand",
+        "status": 201
+      },
+      {
+        "chrt_id": 2002,
+        "track_number": "TRACK_002",
+        "price": 1200,
+        "rid": "rid_test_order_002_2",
+        "name": "Premium Product 2",
+        "sale": 8,
+        "size": "S",
+        "total_price": 1104,
+        "nm_id": 20002,
+        "brand": "Premium Brand",
+        "status": 201
+      }
+    ],
+    "locale": "uk",
+    "internal_signature": "premium_signature",
+    "customer_id": "customer_2",
+    "delivery_service": "nova_poshta",
+    "shardkey": "2",
+    "sm_id": 2,
+    "date_created": "2024-01-02T14:30:00Z",
+    "oof_shard": "2"
+  }
+]
